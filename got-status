@@ -1,0 +1,102 @@
+#!/bin/dash
+
+if [ ! -d ".got" ]
+then
+    echo "$0: error: got repository directory .got not found" 1>&2
+    exit 1
+fi
+
+if [ "$#" != 0 ]
+then
+    echo "usage: $0" 1>&2
+    exit 1
+fi
+
+temp=$(mktemp -d)
+# https://stackoverflow.com/questions/687014/removing-created-temp-files-in-unexpected-bash-exit
+trap 'rm -rf -- "$temp"' INT HUP QUIT TERM EXIT
+
+current_branch=$(cat .got/HEAD)
+
+if [ ! -d ".got/branches/$current_branch" ]
+then
+    echo "$0: error: head branch $current_branch does not exist" 1>&2
+    exit 1
+fi
+# TODO: use the latest commit known to the HEAD's log
+p=$(tail -1 ".got/log" | cut -d' ' -f1)
+
+cp -r ./* ".got/index"/* "$temp" 2>/dev/null
+if [ -n "$p" ]
+then
+    cp -r ".got/commits/.commit.$p"/* "$temp" 2>/dev/null
+fi
+
+string_parse() (
+    if echo "$1" | grep -Eq "\-$" 
+    then
+        echo -n "$1 $2"
+    else
+        echo -n "$1, $2"
+    fi
+)
+
+for file in "$temp"/*
+do
+    file=$(basename "$file")
+    if [ "$file" = "*" ]
+    then
+        continue
+    fi
+
+    status=$(echo -n "$file -")
+    if { [ ! -d ".got/commits/.commit.$p" ] || [ ! -f ".got/commits/.commit.$p/$file" ]; } && [ ! -f ".got/index/$file" ]
+    then
+        echo "${status} untracked"
+        continue
+    fi
+
+    if [ -f ".got/index/$file" ] && [ ! -f ".got/commits/.commit.$p/$file" ]
+    then
+        status=$(string_parse "$status" "added to index")
+    fi
+
+    if [ ! -f "$file" ]
+    then
+        status=$(string_parse "$status" "file deleted")
+    elif [ -f ".got/index/$file" ] && ! diff ".got/index/$file" "$file" > /dev/null
+    then
+        status=$(string_parse "$status" "file changed")
+    fi
+
+    if [ ! -f ".got/index/$file" ]
+    then
+        status=$(string_parse "$status" "deleted from index")
+    elif [ -f ".got/commits/.commit.$p/$file" ] && [ -f "$file" ] 
+    then
+        commit_diff=$(! diff -r ".got/index/$file" ".got/commits/.commit.$p/$file" > /dev/null && echo "true" || echo "false")
+        working_diff=$(! diff -r ".got/index/$file" "$file" > /dev/null && echo "true" || echo "false")
+        
+        if [ "$commit_diff" = "false" ] && [ "$working_diff" = "false" ]
+        then
+            echo "$status same as repo"
+            continue
+        elif [ "$working_diff" = "false" ] && [ "$commit_diff" = "true" ] 
+        then
+            # Since working_diff true is already accounted for in line 64 (refactor?)
+            status=$(string_parse "$status" "file changed")
+        fi
+        
+        if [ "$working_diff" = "true" ] && [ "$commit_diff" = "true" ]
+        then
+            status=$(string_parse "$status" "different changes staged for commit")
+        elif [ "$working_diff" = "true" ]
+        then
+            status=$(string_parse "$status" "changes not staged for commit")
+        else
+            status=$(string_parse "$status" "changes staged for commit")
+        fi
+    fi
+
+    echo "$status"
+done

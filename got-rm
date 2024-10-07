@@ -1,0 +1,98 @@
+#!/bin/dash
+
+command="$0"
+
+if [ ! -d ".got" ]
+then
+    echo "$command: error: got repository directory .got not found" 1>&2
+    exit 1
+fi
+
+usage_error() {
+    echo "usage: $command [--force] [--cached] <filenames>" 1>&2
+    exit 1
+}
+
+# Assumption: options will be in the position and order shown in the usage
+if [ "$#" = 0 ]
+then
+    usage_error
+fi
+
+force=false
+cached=false
+for arg in "$@"
+do
+    if [ "$arg" = "--force" ]; then
+        force=true
+        shift
+        continue
+    elif [ "$arg" = "--cached" ]; then
+        cached=true
+        shift
+        continue
+    else
+        break
+    fi
+done
+
+protect_changes() {
+    # previous commit
+    p=$(find ".got/commits/" -type d -name ".commit.*" -printf "%f\n" | sort | tail -1 | grep -Eo ".$")
+    if [ -z "$p" ]
+    then
+        # no history of commits && there are staged changes in index
+        echo "$command: error: '$1' has staged changes in the index"
+        exit 1
+    fi
+
+    # check if file doesn't exist in latest commit or if the commit file is different from index's
+    commit_diff=$([ ! -e ".got/commits/.commit.$p/$1" ] || ! diff -r ".got/index/$1" ".got/commits/.commit.$p/$1" > /dev/null && echo "true" || echo "false")
+    # check if file doesn't exist in cwd or if the cwd file is different from index's
+    working_diff=$([ ! -e "$1" ] || ! diff -r ".got/index/$1" "$1" > /dev/null && echo "true" || echo "false")
+    
+    if [ "$commit_diff" = "true" ] && [ "$working_diff" = "true" ]
+    then
+        echo "$command: error: '$1' in index is different to both the working file and the repository"
+        exit 1 #E1
+    elif [ "$cached" = true ]
+    then
+        return
+    elif [ "$commit_diff" = "true" ]
+    then
+        echo "$command: error: '$1' has staged changes in the index"
+        exit 1 #E2
+    elif [ "$working_diff" = "true" ]
+    then
+        echo "$command: error: '$1' in the repository is different to the working file"
+        exit 1 #E3
+    fi
+}
+
+for file in "$@"
+do
+    if echo "$file" | grep -Eq "^-"
+    then
+        usage_error
+    elif [ ! -f ".got/index/$file" ]
+    then
+        echo "$0: error: '$file' is not in the got repository"
+        exit 1
+    fi
+done
+
+for file in "$@"
+do
+    if [ "$force" = false ]
+    then
+        protect_changes "$file"
+    fi
+
+    if [ "$cached" = false ]
+    then
+        rm "$file"
+    fi
+
+    rm ".got/index/${file}"
+done
+

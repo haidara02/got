@@ -1,0 +1,100 @@
+#!/bin/dash
+
+if [ ! -d ".got" ]
+then
+    echo "$0: error: got repository directory .got not found" 1>&2
+    exit 1
+fi
+
+usage_error() {
+    echo "usage: $0 [-d] <branch>" 1>&2
+    exit 1
+}
+
+if [ "$#" -gt 2 ]
+then
+    usage_error
+fi
+
+p=$(find ".got/commits/" -type d -name ".commit.*" -printf "%f\n" | sort | tail -1 | grep -Eo ".$")
+if [ -z "$p" ]
+then
+    echo "$0: error: this command can not be run until after the first commit" 1>&2
+    exit 1
+fi
+
+current_branch=$(cat .got/HEAD)
+
+if [ ! -d ".got/branches/$current_branch" ]
+then
+    echo "$0: error: head branch $current_branch does not exist" 1>&2
+    exit 1
+elif [ "$#" = 0 ]
+then
+    for branch in ".got/branches"/*
+    do
+        branch=$(basename "$branch")
+        if [ "$branch" = "*" ]
+        then
+            break
+        fi
+        echo "$branch"
+    done
+    exit 0
+elif [ "$#" = 1 ]
+then
+    # Assumption: new branches and sub-branches cannot have an existing name
+    if echo "$1" | grep -Eq "^-d+$"
+    then
+        echo "$0: error: branch name required" 1>&2
+        exit 1
+    elif echo "$1" | grep -Eivq "^[[:alnum:]]+[\-_A-Z0-9]*"
+    then
+        echo "$0: error: invalid branch name '$1'" 1>&2
+        exit 1
+    fi
+
+    if [ -d ".got/branches/$1" ]
+    then
+        echo "$0: error: branch '$1' already exists" 1>&2
+        exit 1
+    fi
+
+    # create branch
+    # branch inherits commits (logs) that are in the current branch
+    mkdir -p ".got/branches/${1}"
+    cp ".got/log" ".got/branches/${1}/log"
+elif [ "$#" = 2 ]
+then
+    # delete branch
+    if [ "$1" != "-d" ]
+    then
+        usage_error
+    fi
+    
+    if [ "$2" = "master" ]
+    then
+        echo "$0: error: can not delete branch '$2': default branch" 1>&2
+        exit 1
+    elif [ "$2" = "$current_branch" ]
+    then
+        echo "$0: error: can not delete branch '$2': current branch" 1>&2
+        exit 1
+    elif [ ! -d ".got/branches/$2" ]
+    then
+        echo "$0: error: branch '$2' doesn't exist" 1>&2
+        exit 1
+    fi
+
+    p_current=$(tail -1 ".got/log" | cut -d' ' -f1)
+    p_delete=$(tail -1 ".got/branches/$2/log" | cut -d' ' -f1)
+
+    if [ "$p_current" != "$p_delete" ]
+    then
+        echo "$0: error: branch '$2' has unmerged changes" 1>&2
+        exit 1
+    fi
+
+    rm -rf ".got/branches/${2}"
+    echo "Deleted branch '${2}'"
+fi

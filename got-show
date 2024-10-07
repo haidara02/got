@@ -1,0 +1,42 @@
+#!/bin/dash
+
+if [ ! -d ".got" ]
+then
+    echo "$0: error: got repository directory .got not found" 1>&2
+    exit 1
+fi
+
+if [ "$#" != 1 ] || (! echo "$1" | grep -Eq ":")
+then
+    echo "usage: $0 <commit>:<filename>" 1>&2
+    exit 1
+fi
+
+commit=$(echo "$1" | cut -d":" -f1)
+file=$(echo "$1" | cut -d":" -f2)
+
+if [ -z "$file" ]
+then 
+    echo "$0: error: invalid filename '$file'" 1>&2
+    exit 1
+fi
+
+folder="index"
+if [ -n "$commit" ]
+then
+    folder="commits/.commit.$commit"
+fi
+
+if [ ! -d ".got/$folder" ]  
+then
+    echo "$0: error: unknown commit '$commit'" 1>&2
+    exit 1
+elif [ ! -f ".got/$folder/$file" ]
+then
+    location=$(echo "$folder" | sed -E 's/^commits\/\.commit\.(.*)$/commit \1/g')
+    echo "$0: error: '$file' not found in ${location}" 1>&2
+    exit 1
+else
+    cat ".got/$folder/$file"
+fi
+    

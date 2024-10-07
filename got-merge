@@ -1,0 +1,116 @@
+#!/bin/dash
+
+if [ ! -d ".got" ]
+then
+    echo "$0: error: got repository directory .got not found" 1>&2
+    exit 1
+fi
+
+p=$(find ".got/commits/" -type d -name ".commit.*" -printf "%f\n" | sort | tail -1 | grep -Eo ".$")
+if [ -z "$p" ]
+then
+    echo "$0: error: this command can not be run until after the first commit" 1>&2
+    exit 1
+fi
+
+usage_error() {
+    echo "usage: $0 <branch|commit> -m message" 1>&2
+    exit 1
+}
+
+if [ "$#" = 1 ]
+then
+    echo "$0: error: empty commit message" 1>&2
+    exit 1
+elif [ "$#" != 3 ] || [ "$2" != "-m" ]
+then
+    usage_error
+elif echo "$1" | grep -Eq "^-"
+then
+    usage_error
+elif [ ! -d ".got/branches/$1" ]
+then
+    echo "$0: error: unknown branch '$1'" 1>&2
+    exit 1
+fi
+
+# if same branch then print "Already up to date"
+current_branch=$(cat .got/HEAD)
+if [ "$current_branch" = "$1" ]
+then
+    echo "Already up to date"
+    exit 0
+fi
+
+p_current=$(tail -1 ".got/log" | cut -d' ' -f1)
+p_merge=$(tail -1 ".got/branches/$1/log" | cut -d' ' -f1)
+p_common=$(grep -Fxf ".got/branches/$1/log" ".got/log" | tail -1 | cut -d' ' -f1)
+cp -r ".got/commits/.commit.$p_current"/* ".got/index" || exit 1
+
+ffw=true
+merge_conflict=""
+for file in ".got/commits/.commit.$p_current"/*
+do
+    file=$(basename "$file")
+    if [ "$file" = "*" ]
+    then
+        continue
+    elif [ -f ".got/commits/.commit.$p_merge/$file" ]
+    then
+        file_diff=$(diff ".got/commits/.commit.$p_current/$file" ".got/commits/.commit.$p_merge/$file" | grep -E "^[0-9]+c[0-9]+$")
+        if [ -n "$file_diff" ] && [ -f ".got/commits/.commit.$p_common/$file" ] && ! diff ".got/commits/.commit.$p_merge/$file" ".got/commits/.commit.$p_common/$file" > /dev/null
+        then
+            merge_conflict="$merge_conflict\n$file"
+        fi
+    else
+        ffw=false
+    fi
+done
+
+uptodate=true
+for file in ".got/commits/.commit.$p_merge"/*
+do
+    file=$(basename "$file")
+    if [ "$file" = "*" ]
+    then
+        continue
+    elif [ ! -f ".got/commits/.commit.$p_current/$file" ]
+    then
+        uptodate=false
+        cp ".got/commits/.commit.$p_merge/$file" ".got/index" || exit 1
+    elif [ -f ".got/commits/.commit.$p_common/$file" ] && diff ".got/commits/.commit.$p_current/$file" ".got/commits/.commit.$p_common/$file" > /dev/null
+    then
+        cp ".got/commits/.commit.$p_merge/$file" ".got/index" || exit 1
+    fi
+    
+    if [ -f ".got/commits/.commit.$p_common/$file" ] && ! diff ".got/commits/.commit.$p_merge/$file" ".got/commits/.commit.$p_common/$file" > /dev/null
+    then
+        uptodate=false
+    fi
+done
+
+if [ "$p_current" -gt "$p_merge" ] && [ -n "$merge_conflict" ]
+then
+    echo "$0: error: These files can not be merged:" 1>&2
+    echo "$merge_conflict" | sort -u | grep -v "^$" 1>&2
+    exit 1
+fi
+
+temp=$(mktemp)
+trap 'rm -rf -- "$temp"' EXIT
+cat ".got/branches/$1/log" ".got/log" | sort -u > "$temp" || exit 1
+mv -f "$temp" ".got/log" || exit 1
+
+if [ "$uptodate" = true ]
+then
+    echo "Already up to date"
+elif [ "$ffw" = true ]
+then
+    echo "Fast-forward: no commit created"
+else
+    got-commit -m "$3"
+fi
+
+p_current=$(tail -1 ".got/log" | cut -d' ' -f1)
+cp -r ".got/commits/.commit.$p_current"/* "." || exit 1
+cp -r ".got/commits/.commit.$p_current"/* ".got/index" || exit 1

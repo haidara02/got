@@ -1,0 +1,62 @@
+#!/bin/dash
+
+if [ ! -d ".got" ]
+then
+    echo "$0: error: got repository directory .got not found" 1>&2
+    exit 1
+fi
+
+usage_error() {
+    echo "usage: $0 [-a] -m commit-message" 1>&2
+    exit 1
+}
+
+message=""
+
+# Assumption: options will be in the position and order shown in the usage
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]
+then
+    usage_error
+elif [ "$#" = 2 ]
+then
+    if [ "$1" != "-m" ]
+    then
+        usage_error
+    else
+        message="$2"
+    fi
+elif [ "$#" = 3 ] 
+then
+    if [ "$1" != "-a" ] && [ "$2" != "-m" ]
+    then
+        usage_error
+    else
+        message="$3"
+        for file in ".got/index"/*
+        do
+            got-add "$(basename "$file")" || exit 1
+        done
+    fi
+fi
+
+i=0
+while [ -d ".got/commits/.commit.$i" ]
+do
+    p="$i" 
+    i=$((i + 1))
+done
+
+if [ "$i" = 0 ] && [ -z "$(ls .got/index)" ]
+then
+    echo "nothing to commit"
+    exit 0
+elif [ "$i" != 0 ] && diff -r ".got/index" ".got/commits/.commit.$p" > /dev/null
+then
+    echo "nothing to commit"
+    exit 0
+fi
+
+mkdir -p ".got/commits/.commit.$i"
+echo "$i $message" >> ".got/log"
+cp -r ".got/index/." ".got/commits/.commit.$i"
+echo "Committed as commit $i"

@@ -1,0 +1,94 @@
+#!/bin/dash
+
+if [ ! -d ".got" ]
+then
+    echo "$0: error: got repository directory .got not found" 1>&2
+    exit 1
+fi
+
+usage_error() {
+    echo "usage: $0 <branch>" 1>&2
+    exit 1
+}
+
+p=$(find ".got/commits/" -type d -name ".commit.*" -printf "%f\n" | sort | tail -1 | grep -Eo ".$")
+if [ -z "$p" ]
+then
+    echo "$0: error: this command can not be run until after the first commit" 1>&2
+    exit 1
+fi
+
+if [ "$#" != 1 ]
+then
+    usage_error
+fi
+
+if echo "$1" | grep -Eq "^-"
+then
+    usage_error
+elif [ ! -d ".got/branches/$1" ]
+then
+    echo "$0: error: unknown branch '$1'" 1>&2
+    exit 1
+fi
+
+current_branch=$(cat .got/HEAD)
+if [ "$current_branch" = "$1" ]
+then
+    echo "Already on '$1'"
+    exit 0
+fi
+
+# previous commit of current branch
+p_current=$(tail -1 ".got/log" | cut -d' ' -f1)
+# previous commit of requested branch
+p_next=$(tail -1 ".got/branches/$1/log" | cut -d' ' -f1)
+
+overwritten=$(diff -qr ".got/index" ".got/commits/.commit.$p_current" | grep -E "differ" | sed -E "s/.*\/([^\/]*) .*$/\1/g")
+for file in ".got/commits/.commit.$p_next"/*
+do
+    file=$(basename "$file")
+    if [ -f ".got/commits/.commit.$p_current/$file" ] && [ -f "$file" ]
+    then
+        if ! diff "$file" ".got/commits/.commit.$p_current/$file" > /dev/null
+        then
+            overwritten="$overwritten\n$file"
+        fi
+    elif [ -f "$file" ]
+    then
+        overwritten="$overwritten\n$file"
+    fi
+done
+
+if [ "$p_current" = "$p_next" ]
+then
+    :
+elif [ -n "$overwritten" ] 
+then
+    echo "$0: error: Your changes to the following files would be overwritten by checkout:" 1>&2
+    echo "$overwritten" | sort -u | grep -v "^$"
+    exit 1
+else 
+    for file in ".got/commits/.commit.$p_current"/*
+    do
+        file=$(basename "$file")
+        if [ "$file" = "*" ]
+        then
+            continue
+        elif [ ! -f ".got/commits/.commit.$p_next/$file" ]
+        then
+            rm -f "$file" || exit 1
+            rm -f ".got/index/$file" || exit 1
+        fi
+    done
+    cp -r ".got/commits/.commit.$p_next"/* "."
+    cp -r ".got/commits/.commit.$p_next"/* ".got/index/"
+fi
+echo "$1" > ".got/HEAD"
+# backup current branch's logs
+cp ".got/log" ".got/branches/$current_branch/log" || exit 1
+cp ".got/branches/$1/log" ".got/log" || exit 1
+echo "Switched to branch '$1'"
+exit 0
+
+

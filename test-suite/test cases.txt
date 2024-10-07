@@ -1,0 +1,66 @@
+Test Cases
+global - no .pushy
+global - usage error
+
+subset2 - cannot run until first commit
+
+
+merge - merge conflict
+merge - fast forward
+
+-----------------------------------------
+DONE
+add - non existent file
+add - non regular file
+add - only in index | file removed in index
+add - successful with mutiple files
+
+commit - nothing to commit (no commits, empty index | index not diff latest commit)
+commit - successful commit
+commit - successful commmit then commit -a with files already in index
+
+show - invalid filename
+show - unknown commit
+show - file doesn't exist in folder
+show - successful
+
+rm - staged changes in index
+rm - different to both the working file and the repo
+rm - repo diff to working file
+rm - file not in repo (index)
+rm - force
+rm - cached
+rm - force and cached
+
+status - file changed, different changes staged for commit
+status - file changed, changes staged for commit
+status - file changed, changes not staged for commit
+status - file deleted
+status - file deleted, deleted from index
+status - same as repo
+status - added to index
+status - untracked
+
+branch - show multiple branches
+
+branch create - branch name required
+branch create - invalid branch name
+branch create - already exists
+
+branch delete - can not delete branch - default
+branch delete - can not delete branch - current
+branch delete - doesnt exist
+branch delete - unmerged changes
+branch delete - after merge
+branch delete - multiple
+
+checkout - unknown branch (doesn't exist)
+checkout - same branch
+checkout - changes would be overwritten
+checkout - success - same commits
+checkout - success
+
+merge - unknown branch
+merge - same branch
+merge - empty commit message
+merge - file changed in branch 1 and file changed in branch 2

@@ -1,0 +1,32 @@
+#!/bin/dash
+
+if [ ! -d ".got" ]
+then
+    echo "$0: error: got repository directory .got not found" 1>&2
+    exit 1
+fi
+
+if [ "$#" = 0 ]
+then
+    echo "usage: $0 <filenames>" 1>&2
+    exit 1
+fi
+
+for file in "$@"; do
+    if [ ! -e "$file" ] && [ ! -e ".got/index/$file" ]
+    then
+        echo "$0: error: can not open '$file'" 1>&2
+        exit 1
+    elif [ ! -f "$file" ]
+    then
+        if [ -f ".got/index/$file" ]
+        then
+            got-rm --force --cached "$file" || exit 1
+        else
+            echo "$0: error: '$file' is not a regular file" 1>&2
+            exit 1
+        fi
+    else
+        cp "$file" ".got/index"
+    fi
+done

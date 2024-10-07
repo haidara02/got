@@ -1,0 +1,21 @@
+#!/bin/dash
+
+if [ ! -d ".got" ]
+then
+    echo "$0: error: got repository directory .got not found" 1>&2
+    exit 1
+fi
+
+if [ "$#" -ne 0 ]
+then
+    echo "usage: $0" 1>&2
+    exit 1
+fi
+
+if [ -e ".got/log" ]
+then
+    tac ".got/log"
+else
+    echo "$0: error: log file not found" 1>&2
+    exit 1
+fi
