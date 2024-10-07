@@ -1,5 +1,5 @@
 Test Cases
-global - no .pushy
+global - no .got
 global - usage error
 
 subset2 - cannot run until first commit

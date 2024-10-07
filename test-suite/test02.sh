@@ -14,7 +14,7 @@ exp_code="$(mktemp)"
 out_code="$(mktemp)"
 
 trap 'rm -rf "$exp_dir" "$out_dir" "$expected" "$output" "$exp_code" "$out_code"' INT HUP QUIT TERM EXIT
-echo -n "$0 (pushy-commit|show) "
+echo -n "$0 (got-commit|show) "
 
 test_failed() {
     echo "- failed"
@@ -26,47 +26,47 @@ test_failed() {
 }
 
 cd "$exp_dir" || exit 1
-# no .pushy
-echo "$ pushy-commit" >> "$expected" 2>&1
-2041 pushy-commit >> "$expected" 2>&1
+# no .got
+echo "$ got-commit" >> "$expected" 2>&1
+2041 got-commit >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
-# init .pushy
-echo "$ pushy-init" >> "$expected" 2>&1
-2041 pushy-init >> "$expected" 2>&1
+# init .got
+echo "$ got-init" >> "$expected" 2>&1
+2041 got-init >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # no -m | no message | usage
-echo "$ pushy-commit" >> "$expected" 2>&1
-2041 pushy-commit >> "$expected" 2>&1
+echo "$ got-commit" >> "$expected" 2>&1
+2041 got-commit >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # no message | usage
-echo "$ pushy-commit -m" >> "$expected" 2>&1
-2041 pushy-commit -m >> "$expected" 2>&1
+echo "$ got-commit -m" >> "$expected" 2>&1
+2041 got-commit -m >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # nothing in index
-echo "$ pushy-commit -m c0" >> "$expected" 2>&1
-2041 pushy-commit -m c0 >> "$expected" 2>&1
+echo "$ got-commit -m c0" >> "$expected" 2>&1
+2041 got-commit -m c0 >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # first commit
 echo "$ touch a" >> "$expected" 2>&1
 touch "a" || exit 1
-echo "$ pushy-add a" >> "$expected" 2>&1
-2041 pushy-add a >> "$expected" 2>&1
+echo "$ got-add a" >> "$expected" 2>&1
+2041 got-add a >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
-echo "$ pushy-commit -m c0" >> "$expected" 2>&1
-2041 pushy-commit -m c0 >> "$expected" 2>&1
+echo "$ got-commit -m c0" >> "$expected" 2>&1
+2041 got-commit -m c0 >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # index not diff from latest commit
-echo "$ pushy-commit -m c1" >> "$expected" 2>&1
-2041 pushy-commit -m c1 >> "$expected" 2>&1
+echo "$ got-commit -m c1" >> "$expected" 2>&1
+2041 got-commit -m c1 >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # -a option with file already in index
 echo "$ echo 1 > a" >> "$expected" 2>&1
 echo 1 > a || exit 1
-echo "$ pushy-commit -a -m c1" >> "$expected" 2>&1
-2041 pushy-commit -a -m c1 >> "$expected" 2>&1
+echo "$ got-commit -a -m c1" >> "$expected" 2>&1
+2041 got-commit -a -m c1 >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
-echo "$ pushy-show 1:a" >> "$expected" 2>&1
-2041 pushy-show 1:a >> "$expected" 2>&1
+echo "$ got-show 1:a" >> "$expected" 2>&1
+2041 got-show 1:a >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 cd .. || exit 1
 
@@ -74,54 +74,54 @@ cd .. || exit 1
 ###########################################
 
 cd "$out_dir" || exit 1
-# no .pushy
-echo "$ pushy-commit" >> "$output" 2>&1
-pushy-commit >> "$output" 2>&1
+# no .got
+echo "$ got-commit" >> "$output" 2>&1
+got-commit >> "$output" 2>&1
 echo "$?" >> "$out_code"
-# init .pushy
-echo "$ pushy-init" >> "$output" 2>&1
-pushy-init >> "$output" 2>&1
+# init .got
+echo "$ got-init" >> "$output" 2>&1
+got-init >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # no -m | no message | usage
-echo "$ pushy-commit" >> "$output" 2>&1
-pushy-commit >> "$output" 2>&1
+echo "$ got-commit" >> "$output" 2>&1
+got-commit >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # no message | usage
-echo "$ pushy-commit -m" >> "$output" 2>&1
-pushy-commit -m >> "$output" 2>&1
+echo "$ got-commit -m" >> "$output" 2>&1
+got-commit -m >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # nothing in index
-echo "$ pushy-commit -m c0" >> "$output" 2>&1
-pushy-commit -m c0 >> "$output" 2>&1
+echo "$ got-commit -m c0" >> "$output" 2>&1
+got-commit -m c0 >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # first commit
 echo "$ touch a" >> "$output" 2>&1
 touch "a" || exit 1
-echo "$ pushy-add a" >> "$output" 2>&1
-pushy-add a >> "$output" 2>&1
+echo "$ got-add a" >> "$output" 2>&1
+got-add a >> "$output" 2>&1
 echo "$?" >> "$out_code"
-echo "$ pushy-commit -m c0" >> "$output" 2>&1
-pushy-commit -m c0 >> "$output" 2>&1
+echo "$ got-commit -m c0" >> "$output" 2>&1
+got-commit -m c0 >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # index not diff from latest commit
-echo "$ pushy-commit -m c1" >> "$output" 2>&1
-pushy-commit -m c1 >> "$output" 2>&1
+echo "$ got-commit -m c1" >> "$output" 2>&1
+got-commit -m c1 >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # -a option with file already in index
 echo "$ echo 1 > a" >> "$output" 2>&1
 echo 1 > a || exit 1
-echo "$ pushy-commit -a -m c1" >> "$output" 2>&1
-pushy-commit -a -m c1 >> "$output" 2>&1
+echo "$ got-commit -a -m c1" >> "$output" 2>&1
+got-commit -a -m c1 >> "$output" 2>&1
 echo "$?" >> "$out_code"
-echo "$ pushy-show 1:a" >> "$output" 2>&1
-pushy-show 1:a >> "$output" 2>&1
+echo "$ got-show 1:a" >> "$output" 2>&1
+got-show 1:a >> "$output" 2>&1
 echo "$?" >> "$out_code"
 cd .. || exit 1
 
 sed -ir "s?$cmd_dir/??g" "$output"
-if [ ! -d "$out_dir/.pushy" ]
+if [ ! -d "$out_dir/.got" ]
 then
-    echo "- ${RED}.pushy doesn't exist!${NC}"
+    echo "- ${RED}.got doesn't exist!${NC}"
     exit 1
 fi
 

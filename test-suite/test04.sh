@@ -14,7 +14,7 @@ exp_code="$(mktemp)"
 out_code="$(mktemp)"
 
 trap 'rm -rf "$exp_dir" "$out_dir" "$expected" "$output" "$exp_code" "$out_code"' INT HUP QUIT TERM EXIT
-echo -n "$0 (pushy-rm) "
+echo -n "$0 (got-rm) "
 
 test_failed() {
     echo "- failed"
@@ -26,35 +26,35 @@ test_failed() {
 }
 
 cd "$exp_dir" || exit 1
-# no .pushy
-echo "$ pushy-rm" >> "$expected" 2>&1
-2041 pushy-rm >> "$expected" 2>&1
+# no .got
+echo "$ got-rm" >> "$expected" 2>&1
+2041 got-rm >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
-# init .pushy
-echo "$ pushy-init" >> "$expected" 2>&1
-2041 pushy-init >> "$expected" 2>&1
+# init .got
+echo "$ got-init" >> "$expected" 2>&1
+2041 got-init >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # adding files
 echo "$ touch a b c d" >> "$expected" 2>&1
 touch a b c d || exit 1
-echo "$ pushy-add a b c d" >> "$expected" 2>&1
-2041 pushy-add a b c d >> "$expected" 2>&1
+echo "$ got-add a b c d" >> "$expected" 2>&1
+2041 got-add a b c d >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # rm - usage
-echo "$ pushy-rm" >> "$expected" 2>&1
-2041 pushy-rm >> "$expected" 2>&1
+echo "$ got-rm" >> "$expected" 2>&1
+2041 got-rm >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # no history of commits and staged changes in index
-echo "$ pushy-rm a" >> "$expected" 2>&1
-2041 pushy-rm a >> "$expected" 2>&1
+echo "$ got-rm a" >> "$expected" 2>&1
+2041 got-rm a >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # first commit
-echo "$ pushy-commit -m c0" >> "$expected" 2>&1
-2041 pushy-commit -m c0 >> "$expected" 2>&1
+echo "$ got-commit -m c0" >> "$expected" 2>&1
+2041 got-commit -m c0 >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # rm - sucess
-echo "$ pushy-rm a" >> "$expected" 2>&1
-2041 pushy-rm a >> "$expected" 2>&1
+echo "$ got-rm a" >> "$expected" 2>&1
+2041 got-rm a >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # rm - repo diff to working file (b)
 # rm - different to both the working file and the repo (c)
@@ -65,74 +65,74 @@ echo "$ echo 3 > c" >> "$expected" 2>&1
 echo 3 > c || exit 1
 echo "$ echo 4 > d" >> "$expected" 2>&1
 echo 4 > d || exit 1
-echo "$ pushy-add c d" >> "$expected" 2>&1
-2041 pushy-add c d >> "$expected" 2>&1
+echo "$ got-add c d" >> "$expected" 2>&1
+2041 got-add c d >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 echo "$ echo 5 > c" >> "$expected" 2>&1
 echo 5 > c || exit 1
-echo "$ pushy-rm b" >> "$expected" 2>&1
-2041 pushy-rm b >> "$expected" 2>&1
+echo "$ got-rm b" >> "$expected" 2>&1
+2041 got-rm b >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
-echo "$ pushy-rm c" >> "$expected" 2>&1
-2041 pushy-rm c >> "$expected" 2>&1
+echo "$ got-rm c" >> "$expected" 2>&1
+2041 got-rm c >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
-echo "$ pushy-rm d" >> "$expected" 2>&1
-2041 pushy-rm d >> "$expected" 2>&1
+echo "$ got-rm d" >> "$expected" 2>&1
+2041 got-rm d >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
-# file not in .pushy repository
-echo "$ pushy-rm a" >> "$expected" 2>&1
-2041 pushy-rm a >> "$expected" 2>&1
+# file not in .got repository
+echo "$ got-rm a" >> "$expected" 2>&1
+2041 got-rm a >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # second commit
-echo "$ pushy-commit -a -m c1" >> "$expected" 2>&1
-2041 pushy-commit -a -m c1 >> "$expected" 2>&1
+echo "$ got-commit -a -m c1" >> "$expected" 2>&1
+2041 got-commit -a -m c1 >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # rm - force
-echo "$ pushy-rm --force b" >> "$expected" 2>&1
-2041 pushy-rm --force b >> "$expected" 2>&1
+echo "$ got-rm --force b" >> "$expected" 2>&1
+2041 got-rm --force b >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # rm - cached
-echo "$ pushy-rm --cached c" >> "$expected" 2>&1
-2041 pushy-rm --cached c >> "$expected" 2>&1
+echo "$ got-rm --cached c" >> "$expected" 2>&1
+2041 got-rm --cached c >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 # rm - force and cached
-echo "$ pushy-rm --force --cached d" >> "$expected" 2>&1
-2041 pushy-rm --force --cached d >> "$expected" 2>&1
+echo "$ got-rm --force --cached d" >> "$expected" 2>&1
+2041 got-rm --force --cached d >> "$expected" 2>&1
 echo "$?" >> "$exp_code"
 cd .. || exit 1
 
 ###########################################
 
 cd "$out_dir" || exit 1
-# no .pushy
-echo "$ pushy-rm" >> "$output" 2>&1
-pushy-rm >> "$output" 2>&1
+# no .got
+echo "$ got-rm" >> "$output" 2>&1
+got-rm >> "$output" 2>&1
 echo "$?" >> "$out_code"
-# init .pushy
-echo "$ pushy-init" >> "$output" 2>&1
-pushy-init >> "$output" 2>&1
+# init .got
+echo "$ got-init" >> "$output" 2>&1
+got-init >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # adding files
 echo "$ touch a b c d" >> "$output" 2>&1
 touch a b c d || exit 1
-echo "$ pushy-add a b c d" >> "$output" 2>&1
-pushy-add a b c d >> "$output" 2>&1
+echo "$ got-add a b c d" >> "$output" 2>&1
+got-add a b c d >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # rm - usage
-echo "$ pushy-rm" >> "$output" 2>&1
-pushy-rm >> "$output" 2>&1
+echo "$ got-rm" >> "$output" 2>&1
+got-rm >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # no history of commits and staged changes in index
-echo "$ pushy-rm a" >> "$output" 2>&1
-pushy-rm a >> "$output" 2>&1
+echo "$ got-rm a" >> "$output" 2>&1
+got-rm a >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # first commit
-echo "$ pushy-commit -m c0" >> "$output" 2>&1
-pushy-commit -m c0 >> "$output" 2>&1
+echo "$ got-commit -m c0" >> "$output" 2>&1
+got-commit -m c0 >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # rm - sucess
-echo "$ pushy-rm a" >> "$output" 2>&1
-pushy-rm a >> "$output" 2>&1
+echo "$ got-rm a" >> "$output" 2>&1
+got-rm a >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # rm - repo diff to working file (b)
 # rm - different to both the working file and the repo (c)
@@ -143,46 +143,46 @@ echo "$ echo 3 > c" >> "$output" 2>&1
 echo 3 > c || exit 1
 echo "$ echo 4 > d" >> "$output" 2>&1
 echo 4 > d || exit 1
-echo "$ pushy-add c d" >> "$output" 2>&1
-pushy-add c d >> "$output" 2>&1
+echo "$ got-add c d" >> "$output" 2>&1
+got-add c d >> "$output" 2>&1
 echo "$?" >> "$out_code"
 echo "$ echo 5 > c" >> "$output" 2>&1
 echo 5 > c || exit 1
-echo "$ pushy-rm b" >> "$output" 2>&1
-pushy-rm b >> "$output" 2>&1
+echo "$ got-rm b" >> "$output" 2>&1
+got-rm b >> "$output" 2>&1
 echo "$?" >> "$out_code"
-echo "$ pushy-rm c" >> "$output" 2>&1
-pushy-rm c >> "$output" 2>&1
+echo "$ got-rm c" >> "$output" 2>&1
+got-rm c >> "$output" 2>&1
 echo "$?" >> "$out_code"
-echo "$ pushy-rm d" >> "$output" 2>&1
-pushy-rm d >> "$output" 2>&1
+echo "$ got-rm d" >> "$output" 2>&1
+got-rm d >> "$output" 2>&1
 echo "$?" >> "$out_code"
-# file not in .pushy repository
-echo "$ pushy-rm a" >> "$output" 2>&1
-pushy-rm a >> "$output" 2>&1
+# file not in .got repository
+echo "$ got-rm a" >> "$output" 2>&1
+got-rm a >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # second commit
-echo "$ pushy-commit -a -m c1" >> "$output" 2>&1
-pushy-commit -a -m c1 >> "$output" 2>&1
+echo "$ got-commit -a -m c1" >> "$output" 2>&1
+got-commit -a -m c1 >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # rm - force
-echo "$ pushy-rm --force b" >> "$output" 2>&1
-pushy-rm --force b >> "$output" 2>&1
+echo "$ got-rm --force b" >> "$output" 2>&1
+got-rm --force b >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # rm - cached
-echo "$ pushy-rm --cached c" >> "$output" 2>&1
-pushy-rm --cached c >> "$output" 2>&1
+echo "$ got-rm --cached c" >> "$output" 2>&1
+got-rm --cached c >> "$output" 2>&1
 echo "$?" >> "$out_code"
 # rm - force and cached
-echo "$ pushy-rm --force --cached d" >> "$output" 2>&1
-pushy-rm --force --cached d >> "$output" 2>&1
+echo "$ got-rm --force --cached d" >> "$output" 2>&1
+got-rm --force --cached d >> "$output" 2>&1
 echo "$?" >> "$out_code"
 cd .. || exit 1
 
 sed -ir "s?$cmd_dir/??g" "$output"
-if [ ! -d "$out_dir/.pushy" ]
+if [ ! -d "$out_dir/.got" ]
 then
-    echo "- ${RED}.pushy doesn't exist!${NC}"
+    echo "- ${RED}.got doesn't exist!${NC}"
     exit 1
 fi
 
