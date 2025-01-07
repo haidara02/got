@@ -1,7 +1,7 @@
 # got
 
 ## Description
-GOT is a lightweight version control system inspired by Git. It provides basic functionalities for creating repositories, tracking file changes, committing updates, and managing branches. Designed to work in POSIX-compatible Shell, GOT offers a simple interface for managing file versions and changes.
+got is a lightweight version control system inspired by Git. It provides basic functionalities for creating repositories, tracking file changes, committing updates, and managing branches. Designed to work in POSIX-compatible Shell, GOT offers a simple interface for managing file versions and changes.
 
 ## Command List
 1. **got-init**
@@ -81,6 +81,6 @@ got-merge feature-branch -m "merged feature-branch"
 - POSIX-compatible Shell environment.
 
 ## Notes
-- GOT is designed to store all repository data inside the .got directory. No external files or directories are used.
-- GOT does not require a specific internal structure for .got, allowing flexibility in implementation.
-- GOT commands mimic Git but are simplified for educational purposes.
+- got is designed to store all repository data inside the .got directory. No external files or directories are used.
+- got does not require a specific internal structure for .got, allowing flexibility in implementation.
+- got commands mimic Git but are simplified for educational purposes.
